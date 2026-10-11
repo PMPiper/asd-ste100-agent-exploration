@@ -1,0 +1,46 @@
+# Software-engineering jargon, one term per line. This is a draft: edit it.
+# Matching ignores case and also matches inflected forms ("wired up").
+# Add [verb], [noun], or [adj] to match only that part of speech.
+wire up
+plumb [verb]
+surface [verb]
+hydrate
+bubble up
+under the hood
+glue code
+boilerplate
+hook into
+spin up
+footgun
+happy path
+load-bearing
+first-class
+fan out
+tear down
+stand up [verb]
+kick off
+bake in
+short-circuit
+thin wrapper
+escape hatch
+source of truth
+hot path
+round-trip
+on the fly
+out of the box
+sanity check
+gotcha
+shim
+stub out
+no-op
+fall through
+blast radius
+leaky abstraction
+syntactic sugar
+drop-in
+battle-tested
+heavy lifting
+low-hanging fruit
+magic [adj]
+plumbing [noun]
+knob [noun]
