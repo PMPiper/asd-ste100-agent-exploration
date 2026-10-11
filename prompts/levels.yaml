@@ -1,0 +1,7 @@
+# Style sentence per STE level. {level} is replaced with the level number.
+# The style sentence is the only difference between conditions.
+0: ""
+25: "Write your explanation about {level}% of the way to ASD-STE100 Simplified Technical English."
+50: "Write your explanation about {level}% of the way to ASD-STE100 Simplified Technical English."
+80: "Write your explanation about {level}% of the way to ASD-STE100 Simplified Technical English."
+100: "Write your explanation in ASD-STE100 Simplified Technical English."

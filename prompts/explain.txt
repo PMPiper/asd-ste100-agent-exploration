@@ -1,0 +1,2 @@
+You are in a checkout of Apache Beam. Explain how the {name} subsystem in sdks/python/apache_beam/{path} works to an experienced software engineer who has never used Beam. Cover what problem it solves, the main classes and how data flows through them, and anything surprising. Only read code under sdks/python. Do not modify any files.
+{style_sentence}

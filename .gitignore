@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.python-version
+.vscode/
+dist/
+.pytest_cache/
+
+# Raw transcripts stay local until they have been reviewed.
+results/raw/
+# Embedding cache.
+results/cache/
