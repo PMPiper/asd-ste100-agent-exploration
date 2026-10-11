@@ -5,7 +5,25 @@ description = "Measures how asking a coding agent for X% ASD-STE100 Simplified T
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "en-core-web-sm",
+    "matplotlib>=3.9",
+    "numpy>=2.0",
+    "pandas>=2.2",
     "pyyaml>=6.0",
+    "scikit-learn>=1.5",
+    "scipy>=1.14",
+    "spacy>=3.8,<3.9",
+    "textstat>=0.7.4",
+    "umap-learn>=0.5.7",
+    "wordfreq>=3.1",
+]
+
+[project.optional-dependencies]
+# The embedding model. Kept out of the default install because the CUDA
+# build of PyTorch is several gigabytes.
+embed = [
+    "sentence-transformers>=5.0",
+    "torch>=2.7",
 ]
 
 [project.scripts]
@@ -27,3 +45,13 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_functions = ["should_*", "test_*"]
+
+# Blackwell GPUs (RTX 50 series) need a PyTorch build with CUDA 12.8 or newer.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }

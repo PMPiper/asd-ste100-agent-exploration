@@ -9,3 +9,5 @@ dist/
 results/raw/
 # Embedding cache.
 results/cache/
+# Holds the prose of every answer, sentence by sentence.
+results/sentences.csv
