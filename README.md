@@ -25,9 +25,14 @@ Requirements: Linux or WSL, `git`, [`uv`](https://docs.astral.sh/uv/), and
 Claude Code, logged in.
 
 ```bash
-uv sync
+uv sync --extra embed
 uv run pytest
 ```
+
+The `embed` extra installs PyTorch from the CUDA 12.8 wheel index, which an
+RTX 50-series (Blackwell) GPU needs, and `sentence-transformers`. Without the
+extra, `uv sync` is enough for `ste-run` and for
+`ste-analyze --skip-embeddings`.
 
 The results in this repository came from Claude Code 2.1.296. Another version
 can report different built-in skills or plugins. The harness then stops, and
@@ -81,6 +86,49 @@ globs, but it does not see files that reach a command through `xargs` or
 `find -exec`.
 
 `results/raw/` is in `.gitignore`.
+
+## Analyze the runs
+
+```bash
+# Surface metrics only. No GPU or model download.
+uv run ste-analyze --skip-embeddings
+
+# Everything, including the embedding analyses.
+uv run ste-analyze
+```
+
+The analysis reads every valid run that used the configured model and effort
+level, and writes to `results/`:
+
+- `metrics.csv`: one row per run
+- `aggregates_by_level.csv`, `aggregates_by_cell.csv`: n, median, quartiles,
+  mean, and a bootstrap 95% CI of the mean (10,000 resamples, seeded)
+- `trend_tests.csv`: Spearman correlation with the level and its bootstrap CI,
+  and a Kruskal-Wallis test across levels
+- `silhouette.csv`, `drift.csv`, `consistency.csv`: the embedding analyses
+- `figures/`: each figure as PNG (200 dpi) and SVG
+- `summary.md`: tables for the post, paired excerpts, and a reproducibility
+  block
+- `sentences.csv`: every prose sentence (ignored by git, like the transcripts)
+
+How the text is prepared:
+
+- Fenced code blocks, headings, table rows, and horizontal rules are not prose.
+- Each remaining line is split into sentences with spaCy (`en_core_web_sm`).
+- An inline code span counts as one word in the sentence length. It is left
+  out of the readability, rare-word, hedge, and jargon metrics.
+- Document embeddings use the answer without fenced code blocks. Inline code
+  stays in.
+
+The jargon list is `jargon.txt`, one term per line. A term matches inflected
+forms and ignores case. `[verb]`, `[noun]`, or `[adj]` after a term limits it
+to that part of speech.
+
+Embeddings come from the model in `embedding.model`, loaded with
+`sentence-transformers` in bfloat16 on CUDA, or in float32 on the CPU with a
+warning. Texts are embedded as documents, without a query instruction, and
+L2-normalized. Vectors are cached in `results/cache/`, keyed by a hash of the
+model name and the text.
 
 ## How a run is isolated
 
