@@ -79,10 +79,23 @@ def load_metas(results_dir: Path) -> list[dict]:
     return [json.loads(path.read_text()) for path in paths]
 
 
-def has_valid_run(results_dir: Path, job: Job) -> bool:
-    """Tells whether a valid run of this job is already saved."""
-    metas = cell_dir(results_dir, job).glob(f"{job.repeat}-*/meta.json")
-    return any(json.loads(path.read_text()).get("valid") for path in metas)
+def is_usable(meta: dict, config: Config) -> bool:
+    """Tells whether a saved run is valid and used the configured agent.
+
+    A run made with another model or effort level is kept on disk but is not
+    part of the experiment.
+    """
+    return bool(
+        meta.get("valid")
+        and meta.get("model") == config.claude.model
+        and meta.get("effort") == config.claude.effort
+    )
+
+
+def has_valid_run(config: Config, job: Job) -> bool:
+    """Tells whether a usable run of this job is already saved."""
+    paths = cell_dir(config.results_dir, job).glob(f"{job.repeat}-*/meta.json")
+    return any(is_usable(json.loads(path.read_text()), config) for path in paths)
 
 
 def _now() -> str:
@@ -228,7 +241,7 @@ def _confirm_full_batch(config: Config, pending: int) -> bool:
     costs = [
         meta["cost_usd"]
         for meta in load_metas(config.results_dir)
-        if meta.get("valid") and meta.get("cost_usd") is not None
+        if is_usable(meta, config) and meta.get("cost_usd") is not None
     ]
     if costs:
         mean = sum(costs) / len(costs)
@@ -286,7 +299,7 @@ def main(argv: list[str] | None = None) -> int:
         _print_dry_run(config, jobs)
         return 0
 
-    pending = [job for job in jobs if not has_valid_run(config.results_dir, job)]
+    pending = [job for job in jobs if not has_valid_run(config, job)]
     print(f"{len(jobs)} jobs selected, {len(pending)} pending.")
     if not pending:
         return 0

@@ -1,5 +1,6 @@
 """Tests for grid construction, job selection, and resuming."""
 
+import dataclasses
 import json
 from pathlib import Path
 
@@ -9,10 +10,15 @@ from ste_dial.config import load_config
 CONFIG = load_config(Path(__file__).resolve().parent.parent / "config.yaml")
 
 
-def _save_meta(results_dir: Path, job: run.Job, run_id: str, valid: bool) -> None:
-    run_dir = run.cell_dir(results_dir, job) / run_id
+def _config_in(results_dir: Path):
+    return dataclasses.replace(CONFIG, results_dir=results_dir)
+
+
+def _save_meta(results_dir: Path, job: run.Job, valid: bool, model: str) -> None:
+    run_dir = run.cell_dir(results_dir, job) / f"{job.repeat}-aaaaaaaa"
     run_dir.mkdir(parents=True)
-    (run_dir / "meta.json").write_text(json.dumps({"valid": valid}))
+    meta = {"valid": valid, "model": model, "effort": CONFIG.claude.effort}
+    (run_dir / "meta.json").write_text(json.dumps(meta))
 
 
 def should_build_one_job_per_subsystem_level_and_repeat():
@@ -52,21 +58,28 @@ def should_select_the_first_jobs_of_the_shuffled_grid_with_limit():
 def should_treat_job_as_pending_when_no_run_is_saved(tmp_path):
     job = run.build_grid(CONFIG)[0]
 
-    assert not run.has_valid_run(tmp_path, job)
+    assert not run.has_valid_run(_config_in(tmp_path), job)
 
 
 def should_skip_job_that_has_a_valid_run(tmp_path):
     job = run.build_grid(CONFIG)[0]
-    _save_meta(tmp_path, job, f"{job.repeat}-aaaaaaaa", valid=True)
+    _save_meta(tmp_path, job, valid=True, model=CONFIG.claude.model)
 
-    assert run.has_valid_run(tmp_path, job)
+    assert run.has_valid_run(_config_in(tmp_path), job)
 
 
 def should_rerun_job_whose_only_saved_run_is_invalid(tmp_path):
     job = run.build_grid(CONFIG)[0]
-    _save_meta(tmp_path, job, f"{job.repeat}-aaaaaaaa", valid=False)
+    _save_meta(tmp_path, job, valid=False, model=CONFIG.claude.model)
 
-    assert not run.has_valid_run(tmp_path, job)
+    assert not run.has_valid_run(_config_in(tmp_path), job)
+
+
+def should_rerun_job_whose_saved_run_used_another_model(tmp_path):
+    job = run.build_grid(CONFIG)[0]
+    _save_meta(tmp_path, job, valid=True, model="some-other-model")
+
+    assert not run.has_valid_run(_config_in(tmp_path), job)
 
 
 def should_print_prompt_and_command_without_running_in_dry_run(capsys):
