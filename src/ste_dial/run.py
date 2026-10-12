@@ -53,18 +53,26 @@ def build_grid(config: Config) -> list[Job]:
     return jobs
 
 
-def select_jobs(grid: list[Job], pilot: bool, limit: int | None) -> list[Job]:
+def select_jobs(
+    grid: list[Job],
+    pilot: bool,
+    limit: int | None,
+    levels: list[int] | None = None,
+) -> list[Job]:
     """Applies --pilot and --limit to the shuffled grid.
 
     Args:
         grid: The shuffled grid.
         pilot: Keep only the first repeat of every subsystem x level.
         limit: Keep only the first N jobs, or None for all.
+        levels: Keep only these STE levels, or None for all.
 
     Returns:
         The jobs to run, in grid order.
     """
     jobs = [job for job in grid if job.repeat == 1] if pilot else list(grid)
+    if levels is not None:
+        jobs = [job for job in jobs if job.level in levels]
     return jobs if limit is None else jobs[:limit]
 
 
@@ -301,6 +309,12 @@ def main(argv: list[str] | None = None) -> int:
         help="run one repeat of every subsystem x level",
     )
     parser.add_argument(
+        "--levels",
+        type=int,
+        nargs="+",
+        help="run only these STE levels, for example --levels 0",
+    )
+    parser.add_argument(
         "--yes", action="store_true", help="do not ask before a full batch"
     )
     parser.add_argument(
@@ -319,7 +333,7 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(line_buffering=True)
 
     config = load_config(args.config)
-    jobs = select_jobs(build_grid(config), args.pilot, args.limit)
+    jobs = select_jobs(build_grid(config), args.pilot, args.limit, args.levels)
     if args.dry_run:
         _print_dry_run(config, jobs)
         return 0
@@ -330,7 +344,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{len(jobs)} jobs selected, {len(pending)} pending.")
     if not pending:
         return 0
-    is_full_batch = not args.pilot and args.limit is None
+    is_full_batch = not args.pilot and args.limit is None and args.levels is None
     if is_full_batch and not args.yes and not _confirm_full_batch(config, len(pending)):
         return 1
 

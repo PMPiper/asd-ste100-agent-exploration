@@ -74,6 +74,13 @@ def should_report_no_usage_when_the_run_has_no_rate_limit_info():
     assert run.five_hour_usage({"rate_limit": None}) is None
 
 
+def should_select_only_the_requested_levels():
+    jobs = run.select_jobs(run.build_grid(CONFIG), pilot=True, limit=None, levels=[0])
+
+    assert len(jobs) == 3
+    assert {job.level for job in jobs} == {0}
+
+
 def should_treat_job_as_pending_when_no_run_is_saved(tmp_path):
     job = run.build_grid(CONFIG)[0]
 
