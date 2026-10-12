@@ -1,0 +1,6 @@
+# Style sentence per STE level for the document tasks.
+0: ""
+25: "Write the document about {level}% of the way to ASD-STE100 Simplified Technical English."
+50: "Write the document about {level}% of the way to ASD-STE100 Simplified Technical English."
+80: "Write the document about {level}% of the way to ASD-STE100 Simplified Technical English."
+100: "Write the document in ASD-STE100 Simplified Technical English."

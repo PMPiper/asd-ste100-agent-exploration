@@ -7,7 +7,10 @@ dist/
 
 # Raw transcripts stay local until they have been reviewed.
 results/raw/
+results-*/raw/
 # Embedding cache.
 results/cache/
+results-*/cache/
 # Holds the prose of every answer, sentence by sentence.
 results/sentences.csv
+results-*/sentences.csv

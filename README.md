@@ -51,7 +51,8 @@ uv run ste-run --pilot
 uv run ste-run
 ```
 
-`--limit N` runs only the first N jobs of the shuffled grid.
+`--limit N` runs only the first N jobs of the shuffled grid. `--levels 0 100`
+runs only those STE levels.
 `--by-repeat` finishes repeat 1 of every cell before repeat 2, so a batch
 that stops early stays balanced. `--stop-at-usage 0.9` stops the batch when
 the five-hour usage window of a subscription is 90% full.
@@ -89,6 +90,41 @@ globs, but it does not see files that reach a command through `xargs` or
 `find -exec`.
 
 `results/raw/` is in `.gitignore`.
+
+## Follow-up: document tasks
+
+The explanation task above produces plain prose even at 0%. Two more configs
+ask for the kinds of text where dense, abstract prose shows up: a design
+document and a handoff document. They use Sonnet 5.5 at high effort and write
+to their own results folders.
+
+| Config | Prompt | Results |
+|---|---|---|
+| `config-design-doc.yaml` | `prompts/design_doc.txt` | `results-design-doc/` |
+| `config-handoff.yaml` | `prompts/handoff.txt` | `results-handoff/` |
+
+Check first that the baseline is dense at all. This runs only the 0% level,
+one run per subsystem (3 runs), and reports the dense-prose measures:
+
+```bash
+uv run ste-run --config config-design-doc.yaml --pilot --levels 0
+uv run ste-analyze --config config-design-doc.yaml --skip-embeddings
+```
+
+Compare the "Dense prose" table in `results-design-doc/summary.md` with the
+anchor text in `anchors/dense.txt`, which has 33% stacked noun phrases and 96
+hyphenated compounds per 1,000 words. If the baseline is not dense, change
+`claude.model` or `claude.effort` in the config and run the check again. Runs
+of another model stay on disk and are not analyzed.
+
+Then run the batch and the analysis:
+
+```bash
+uv run ste-run --config config-design-doc.yaml --by-repeat --stop-at-usage 0.9
+uv run ste-analyze --config config-design-doc.yaml
+```
+
+The same commands work with `config-handoff.yaml`.
 
 ## Analyze the runs
 
@@ -128,6 +164,19 @@ Identifier retention compares a run with the inline code identifiers of the
 one, and holds the identifiers that at least half of them mention. A 0% run
 is scored against the set that leaves it out. Every other run gets the mean
 over all the sets.
+
+The dense-prose measures look for stacked, abstract wording:
+
+- stacked noun phrases: the share of noun phrases with three or more nouns
+  and adjectives ("durable intent ledger")
+- hyphenated compounds per 1,000 words ("leader-fenced")
+- nominalizations per 1,000 words: long nouns that end in -tion, -ment, -ity,
+  and similar
+- nouns and adjectives per verb
+- the density axis: the similarity of a run's embedding to `anchors/dense.txt`
+  minus its similarity to `anchors/plain.txt`. The two anchors say the same
+  thing in a dense and in a plain style. The anchors are about another topic
+  than the runs, so this measure is weak at the document level.
 
 The jargon list is `jargon.txt`, one term per line. A term matches inflected
 forms and ignores case. `[verb]`, `[noun]`, or `[adj]` after a term limits it

@@ -1,0 +1,95 @@
+# Follow-up experiment: the agent writes a design document, the kind of text where
+# dense, abstract prose shows up. Paths are relative to this file.
+
+beam:
+  repo_url: https://github.com/apache/beam.git
+  sha: fadfc789376137afabab0469bf1e43a0f10a6ad0
+  # Scratch checkout, outside this repository.
+  workdir: ~/.cache/asd-ste100-agent-exploration/beam
+
+subsystems:
+  - {id: runinference, name: RunInference, path: ml/inference}
+  - {id: coders, name: Coders, path: coders}
+  - {id: fn_api_runner, name: FnApiRunner, path: runners/portability/fn_api_runner}
+
+levels: [0, 25, 50, 80, 100]
+repeats: 3
+
+# Seeds the run-order shuffle and all randomness in the analysis.
+seed: 20261011
+
+claude:
+  # Full model ID, never an alias.
+  model: claude-sonnet-5-5
+  effort: high
+  max_turns: 60
+  max_budget_usd: 5.0
+  # Wall-clock limit per run, in seconds.
+  timeout_s: 1800
+  tools: [Read, Grep, Glob, Bash]
+  allowed_tools:
+    - "Bash(ls *)"
+    - "Bash(find *)"
+    - "Bash(rg *)"
+    - "Bash(grep *)"
+    - "Bash(cat *)"
+    - "Bash(head *)"
+    - "Bash(wc *)"
+  disallowed_tools: [Edit, Write, "mcp__*"]
+  # What the init event must report. These are the names that ship with Claude
+  # Code itself under --safe-mode. A run fails if the init event differs, so a
+  # personal skill, plugin, or agent cannot go unnoticed.
+  expected_init:
+    permission_mode: default
+    output_style: default
+    plugins:
+      - cc-plugin-agents-md
+      - cc-plugin-telemetry
+      - cc-plugin-plugin-authoring
+    skills:
+      - design
+      - design-sync
+      - dataviz
+      - update-config
+      - verify
+      - debug
+      - code-review
+      - simplify
+      - batch
+      - fewer-permission-prompts
+      - doctor
+      - loop
+      - schedule
+      - claude-api
+      - run
+      - run-skill-generator
+      - plugin-authoring
+    agents: [claude, Explore, general-purpose, Plan]
+    slash_commands: [
+      design, design-sync, dataviz, update-config, verify, debug, code-review,
+      simplify, batch, fewer-permission-prompts, doctor, loop, schedule,
+      claude-api, run, run-skill-generator, plugin-authoring, advisor, agents,
+      auto-mode-setup, autocompact, clear, color, compact, config,
+      output-style, context, effort, fast, focus, heapdump, init, mcp, import,
+      model, __remote-workflow, workflow-launch-exec, reload-plugins,
+      reload-skills, rename, ultrareview, security-review, usage-credits,
+      extra-usage, usage, insights, recap, skill-doctor, goal, design-consent,
+      design-revoke, list-agents, team-onboarding
+    ]
+
+embedding:
+  model: Qwen/Qwen3-Embedding-0.6B
+  # Optional larger model: Qwen/Qwen3-Embedding-4B
+  max_tokens: 8192
+
+results_dir: results-design-doc
+prompts:
+  template: prompts/design_doc.txt
+  levels: prompts/levels_document.yaml
+jargon_file: jargon.txt
+
+# Two texts that say the same thing, one dense and one plain. The analysis
+# places each explanation on the axis between their embeddings.
+anchors:
+  dense: anchors/dense.txt
+  plain: anchors/plain.txt

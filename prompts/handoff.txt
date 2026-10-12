@@ -1,0 +1,2 @@
+You are in a checkout of Apache Beam. Investigate the {name} subsystem in sdks/python/apache_beam/{path}, then write a handoff document for the engineer who takes over this subsystem from you tomorrow. Describe how the subsystem is structured, how data and control flow through it, what state it keeps, what can go wrong, and where to look first. Only read code under sdks/python. Do not modify any files.
+{style_sentence}

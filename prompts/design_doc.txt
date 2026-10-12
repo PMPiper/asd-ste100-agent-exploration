@@ -1,0 +1,2 @@
+You are in a checkout of Apache Beam. Write a design document that describes the current architecture of the {name} subsystem in sdks/python/apache_beam/{path}, for a design review. Cover the goals, the main components and their responsibilities, how data and control flow through them, the invariants the design relies on, the failure modes, and the trade-offs. Only read code under sdks/python. Do not modify any files.
+{style_sentence}
