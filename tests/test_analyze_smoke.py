@@ -97,7 +97,9 @@ def should_write_every_figure_the_post_refers_to_with_embeddings(tmp_path):
     written = sorted(path.name for path in (tmp_path / "figures").glob("*.png"))
     assert written == [
         "cell_similarity_heatmap.png",
+        "compounds_by_level.png",
         "consistency_by_level.png",
+        "density_axis_by_level.png",
         "doc_pca.png",
         "doc_tsne.png",
         "doc_umap.png",
@@ -106,6 +108,7 @@ def should_write_every_figure_the_post_refers_to_with_embeddings(tmp_path):
         "jargon_by_level.png",
         "sentence_length_by_level.png",
         "sentence_umap_jargon.png",
+        "stacked_noun_phrases_by_level.png",
     ]
     assert (tmp_path / "figures" / "doc_tsne.svg").exists()
 

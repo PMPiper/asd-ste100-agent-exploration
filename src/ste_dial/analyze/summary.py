@@ -17,6 +17,16 @@ LEVEL_TABLE = (
 )
 
 
+DENSITY_TABLE = (
+    ("Stacked noun phrases (mean)", "stacked_noun_phrase_share", "mean", "{:.1%}"),
+    ("Hyphenated compounds per 1k words (mean)", "compounds_per_1k", "mean", "{:.1f}"),
+    ("Nominalizations per 1k words (mean)", "nominalizations_per_1k", "mean", "{:.1f}"),
+    ("Nouns and adjectives per verb (mean)", "noun_verb_ratio", "mean", "{:.2f}"),
+    ("Rare-word share (mean)", "rare_word_share", "mean", "{:.1%}"),
+    ("Flesch-Kincaid grade (mean)", "flesch_kincaid_grade", "mean", "{:.1f}"),
+)
+
+
 def fmt(value: float, pattern: str = "{:.3f}") -> str:
     """Formats a number, or "n/a" for a missing value."""
     if value is None or (isinstance(value, float) and math.isnan(value)):
@@ -33,6 +43,15 @@ def markdown_table(header: list[str], rows: list[list[str]]) -> str:
 
 def level_table(by_level: pd.DataFrame, levels: list[int]) -> str:
     """The level comparison table, with the number of runs per level."""
+    return _table_by_level(by_level, levels, LEVEL_TABLE)
+
+
+def density_table(by_level: pd.DataFrame, levels: list[int]) -> str:
+    """The dense-prose measures by level, with the number of runs per level."""
+    return _table_by_level(by_level, levels, DENSITY_TABLE)
+
+
+def _table_by_level(by_level: pd.DataFrame, levels: list[int], spec: tuple) -> str:
     indexed = by_level.set_index(["metric", "level"])
 
     def value(metric: str, level: int, statistic: str) -> float:
@@ -42,7 +61,7 @@ def level_table(by_level: pd.DataFrame, levels: list[int]) -> str:
 
     rows = [
         [label] + [fmt(value(metric, level, statistic), pattern) for level in levels]
-        for label, metric, statistic, pattern in LEVEL_TABLE
+        for label, metric, statistic, pattern in spec
     ]
     counts = [
         (

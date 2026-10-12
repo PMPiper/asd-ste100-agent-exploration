@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from ste_dial import run as batch
-from ste_dial.analyze import figures, geometry, stats, summary, surface
+from ste_dial.analyze import density, figures, geometry, stats, summary, surface
 from ste_dial.analyze.embed import CachedEmbedder, Embedder
 from ste_dial.analyze.preprocess import Document, parse_document
 from ste_dial.config import Config, load_config
@@ -32,6 +32,10 @@ METRICS = [
     "jargon_per_1k",
     "rare_word_share",
     "hedges_per_1k",
+    "compounds_per_1k",
+    "nominalizations_per_1k",
+    "stacked_noun_phrase_share",
+    "noun_verb_ratio",
     "identifier_retention",
     "files_read",
     "turns",
@@ -141,6 +145,7 @@ def build_run_table(runs: list[Run], terms: list[surface.JargonTerm]) -> pd.Data
                 "level": meta["level"],
                 "repeat": meta["repeat"],
                 **metrics,
+                **density.density_metrics(r.document.plain_prose),
                 "identifier_retention": retention(r)[0],
                 "baseline_identifiers": retention(r)[1],
                 "files_read": len(meta["files_read"]),
@@ -257,6 +262,13 @@ def analyze(config: Config, embedder: Embedder | None) -> None:
         "Spearman correlation of each metric with the level over all runs, "
         "with a bootstrap 95% CI, and a Kruskal-Wallis test across levels.",
         summary.trend_table(trends),
+        "## Dense prose",
+        "Measures of stacked, abstract wording, all subsystems pooled.",
+        summary.density_table(by_level, levels),
+        "## Stacked noun phrases by cell",
+        summary.detail_table(
+            by_cell, "stacked_noun_phrase_share", names, levels, "{:.1%}"
+        ),
         "## Jargon",
         f"Top terms at {levels[0]}%, with the number of occurrences by level "
         f"({len(terms)} terms in the list).",
@@ -299,11 +311,63 @@ def analyze(config: Config, embedder: Embedder | None) -> None:
         "identifier_retention",
     )
 
+    figures.save(
+        figures.metric_by_level(
+            table,
+            "stacked_noun_phrase_share",
+            style,
+            "Stacked noun phrases by STE level",
+            "Share of noun phrases with 3+ nouns and adjectives",
+            rng,
+        ),
+        figure_dir,
+        "stacked_noun_phrases_by_level",
+    )
+    figures.save(
+        figures.metric_by_level(
+            table,
+            "compounds_per_1k",
+            style,
+            "Hyphenated compounds by STE level",
+            "Hyphenated compounds per 1,000 words",
+            rng,
+        ),
+        figure_dir,
+        "compounds_by_level",
+    )
+
     chosen = None
     truncated = None
     if embedder is not None:
         vectors = embedder.embed([r.document.text_without_code_blocks for r in runs])
         table["similarity_to_baseline"] = geometry.drift_from_baseline(vectors, table)
+        if config.anchor_dense is not None and config.anchor_plain is not None:
+            dense, plain = embedder.embed(
+                [config.anchor_dense.read_text(), config.anchor_plain.read_text()]
+            )
+            table["density_axis"] = density.density_axis_scores(vectors, dense, plain)
+            axis = stats.aggregate(table, ["density_axis"], ["subsystem", "level"], rng)
+            axis.to_csv(out / "density_axis.csv", index=False)
+            figures.save(
+                figures.metric_by_level(
+                    table,
+                    "density_axis",
+                    style,
+                    "Position between the plain and the dense anchor text",
+                    "Similarity to dense anchor minus plain anchor",
+                    rng,
+                ),
+                figure_dir,
+                "density_axis_by_level",
+            )
+            axis_section = [
+                "## Density axis",
+                "Cosine similarity of each run to the dense anchor text minus "
+                "its similarity to the plain anchor text. Higher is denser.",
+                summary.detail_table(axis, "density_axis", names, levels, "{:+.3f}"),
+            ]
+        else:
+            axis_section = []
         noise = geometry.baseline_pairwise(vectors, table)
         scores = geometry.silhouette_table(vectors, table)
         cells = geometry.cell_consistency(vectors, table, rng)
@@ -397,6 +461,7 @@ def analyze(config: Config, embedder: Embedder | None) -> None:
             "## Consistency of repeats",
             summary.consistency_table(cells, names),
         ]
+        sections += axis_section
     else:
         sections += ["## Embeddings", "Skipped (`--skip-embeddings`)."]
 

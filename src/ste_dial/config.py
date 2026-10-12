@@ -61,6 +61,8 @@ class Config:
     prompt_template: str
     style_sentences: dict[int, str]
     jargon_file: Path
+    anchor_dense: Path | None = None
+    anchor_plain: Path | None = None
 
 
 def _resolve(root: Path, value: str) -> Path:
@@ -84,6 +86,7 @@ def load_config(path: Path) -> Config:
     root = path.parent
     raw = yaml.safe_load(path.read_text())
     claude = raw["claude"]
+    anchors = raw.get("anchors")
     expected = claude["expected_init"]
     template = _resolve(root, raw["prompts"]["template"]).read_text()
     sentences = yaml.safe_load(_resolve(root, raw["prompts"]["levels"]).read_text())
@@ -124,6 +127,8 @@ def load_config(path: Path) -> Config:
         prompt_template=template,
         style_sentences={int(k): str(v) for k, v in sentences.items()},
         jargon_file=_resolve(root, raw["jargon_file"]),
+        anchor_dense=_resolve(root, anchors["dense"]) if anchors else None,
+        anchor_plain=_resolve(root, anchors["plain"]) if anchors else None,
     )
 
 

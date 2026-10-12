@@ -86,3 +86,9 @@ prompts:
   template: prompts/explain.txt
   levels: prompts/levels.yaml
 jargon_file: jargon.txt
+
+# Two texts that say the same thing, one dense and one plain. The analysis
+# places each explanation on the axis between their embeddings.
+anchors:
+  dense: anchors/dense.txt
+  plain: anchors/plain.txt
