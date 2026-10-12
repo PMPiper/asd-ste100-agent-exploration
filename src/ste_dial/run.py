@@ -68,6 +68,21 @@ def select_jobs(grid: list[Job], pilot: bool, limit: int | None) -> list[Job]:
     return jobs if limit is None else jobs[:limit]
 
 
+def order_by_repeat(jobs: list[Job]) -> list[Job]:
+    """Moves lower repeats first and keeps the shuffled order within a repeat.
+
+    If the batch stops early, every cell then has the same number of runs,
+    or differs by one.
+    """
+    return sorted(jobs, key=lambda job: job.repeat)
+
+
+def five_hour_usage(meta: dict) -> float | None:
+    """Returns the used share of the five-hour usage window, if reported."""
+    windows = (meta.get("rate_limit") or {}).get("unifiedWindows") or {}
+    return (windows.get("five_hour") or {}).get("utilization")
+
+
 def cell_dir(results_dir: Path, job: Job) -> Path:
     """Returns the folder that holds all runs of one subsystem x level."""
     return results_dir / "raw" / job.subsystem.id / str(job.level)
@@ -288,6 +303,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--yes", action="store_true", help="do not ask before a full batch"
     )
+    parser.add_argument(
+        "--by-repeat",
+        action="store_true",
+        help="finish repeat 1 of every cell before repeat 2, and so on",
+    )
+    parser.add_argument(
+        "--stop-at-usage",
+        type=float,
+        help="stop when the five-hour usage window is this full (0 to 1)",
+    )
     args = parser.parse_args(argv)
     # Progress lines must appear at once, also when the output is a pipe.
     if isinstance(sys.stdout, io.TextIOWrapper):
@@ -300,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     pending = [job for job in jobs if not has_valid_run(config, job)]
+    if args.by_repeat:
+        pending = order_by_repeat(pending)
     print(f"{len(jobs)} jobs selected, {len(pending)} pending.")
     if not pending:
         return 0
@@ -330,6 +357,17 @@ def main(argv: list[str] | None = None) -> int:
                 f"${meta['cost_usd'] or 0:.2f} (batch total ${total_cost:.2f})"
                 f"{_usage_note(meta)}"
             )
+            usage = five_hour_usage(meta)
+            if (
+                args.stop_at_usage is not None
+                and usage is not None
+                and usage >= args.stop_at_usage
+            ):
+                print(
+                    f"Stopping: the five-hour usage window is {usage:.0%} full. "
+                    f"Batch cost ${total_cost:.2f}. Run again later to resume."
+                )
+                return 0
             if meta["valid"]:
                 break
             for reason in meta["failure_reasons"]:

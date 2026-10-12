@@ -13,7 +13,7 @@ at the end of the prompt.
 |---|---|
 | Subsystems | RunInference, Coders, FnApiRunner |
 | STE levels | 0, 25, 50, 80, 100 |
-| Repeats | 5 per subsystem and level (75 runs) |
+| Repeats | 3 per subsystem and level (45 runs) |
 
 All parameters are in `config.yaml`. The prompt template is in
 `prompts/explain.txt`, and the style sentence for each level is in
@@ -52,6 +52,9 @@ uv run ste-run
 ```
 
 `--limit N` runs only the first N jobs of the shuffled grid.
+`--by-repeat` finishes repeat 1 of every cell before repeat 2, so a batch
+that stops early stays balanced. `--stop-at-usage 0.9` stops the batch when
+the five-hour usage window of a subscription is 90% full.
 
 The first run fetches the pinned Beam commit into `beam.workdir`, which is
 outside this repository. It then removes `.agent/` with one local commit, and

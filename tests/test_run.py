@@ -55,6 +55,25 @@ def should_select_the_first_jobs_of_the_shuffled_grid_with_limit():
     assert jobs == grid[:2]
 
 
+def should_put_lower_repeats_first_and_keep_shuffled_order_within_a_repeat():
+    grid = run.build_grid(CONFIG)
+
+    ordered = run.order_by_repeat(grid)
+
+    assert [job.repeat for job in ordered[:15]] == [1] * 15
+    assert ordered[:15] == run.select_jobs(grid, pilot=True, limit=None)
+
+
+def should_read_five_hour_usage_from_the_rate_limit_info():
+    meta = {"rate_limit": {"unifiedWindows": {"five_hour": {"utilization": 0.4}}}}
+
+    assert run.five_hour_usage(meta) == 0.4
+
+
+def should_report_no_usage_when_the_run_has_no_rate_limit_info():
+    assert run.five_hour_usage({"rate_limit": None}) is None
+
+
 def should_treat_job_as_pending_when_no_run_is_saved(tmp_path):
     job = run.build_grid(CONFIG)[0]
 

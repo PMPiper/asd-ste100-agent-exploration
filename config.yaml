@@ -12,7 +12,7 @@ subsystems:
   - {id: fn_api_runner, name: FnApiRunner, path: runners/portability/fn_api_runner}
 
 levels: [0, 25, 50, 80, 100]
-repeats: 5
+repeats: 3
 
 # Seeds the run-order shuffle and all randomness in the analysis.
 seed: 20261011
