@@ -25,9 +25,9 @@ All parameters are in `config.yaml`. The prompt template is in
 |---|---|---|---|
 | Explanation | `config.yaml` | 45 of 45 | Sonnet 5.5, medium effort |
 | Design document | `config-design-doc.yaml` | 15 of 45 (one run per cell) | Sonnet 5.5, high effort |
-| Handoff document | `config-handoff.yaml` | 0 of 45 | Sonnet 5.5, high effort |
+| Handoff document | `config-handoff.yaml` | 15 of 45 (one run per cell) | Sonnet 5.5, high effort |
 
-The design-document results are a first look. With one run per cell they
+The design-document and handoff results are a first look. With one run per cell they
 have no noise floor and no meaningful confidence intervals.
 
 ## Setup
