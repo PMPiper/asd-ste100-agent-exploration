@@ -10,7 +10,9 @@ Beam subsystems, then analyzes the explanations. See `README.md`.
 - `uv run ste-run --pilot` / `uv run ste-run` — live runs; these use quota
 
 ## Structure
-- `config.yaml` — every experiment parameter
+- `config.yaml` — the explanation experiment; `config-design-doc.yaml` and
+  `config-handoff.yaml` — the document-task follow-ups
+- `anchors/` — a dense and a plain text that say the same thing
 - `prompts/` — prompt template and the style sentence per level
 - `src/ste_dial/beam.py` — Beam checkout: fetch, scrub, scan, reset
 - `src/ste_dial/claude_cli.py` — command builder, stream parser, init checks
@@ -20,6 +22,6 @@ Beam subsystems, then analyzes the explanations. See `README.md`.
 ## Conventions
 - Never change anything in the Beam checkout except the `.agent/` removal
   commit that `beam.prepare` makes.
-- `results/raw/` is ignored by git. Do not commit transcripts.
+- `results*/raw/` is ignored by git. Do not commit transcripts.
 - Do not weaken an isolation check to make a run pass. Stop and ask.
 - Tests are named `should_<behavior>`; pytest collects that prefix.

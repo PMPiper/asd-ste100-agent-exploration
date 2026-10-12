@@ -19,6 +19,17 @@ All parameters are in `config.yaml`. The prompt template is in
 `prompts/explain.txt`, and the style sentence for each level is in
 `prompts/levels.yaml`.
 
+## Status
+
+| Experiment | Config | Runs done | Model |
+|---|---|---|---|
+| Explanation | `config.yaml` | 45 of 45 | Sonnet 5.5, medium effort |
+| Design document | `config-design-doc.yaml` | 14 of 45 (one run per cell, Coders at 50% missing) | Sonnet 5.5, high effort |
+| Handoff document | `config-handoff.yaml` | 0 of 45 | Sonnet 5.5, high effort |
+
+The design-document results are a first look. With one run per cell they
+have no noise floor and no meaningful confidence intervals.
+
 ## Setup
 
 Requirements: Linux or WSL, `git`, [`uv`](https://docs.astral.sh/uv/), and
