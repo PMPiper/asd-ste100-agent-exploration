@@ -103,15 +103,30 @@ def build_run_table(runs: list[Run], terms: list[surface.JargonTerm]) -> pd.Data
         if r.meta["level"] == BASELINE_LEVEL:
             baseline_runs.setdefault(r.meta["subsystem"]["id"], []).append(r)
 
-    def baseline_for(run: Run) -> set[str]:
-        # A baseline run is scored against the other baseline runs, so that
-        # its own identifiers do not raise its score.
-        others = [
-            set(r.document.identifiers)
-            for r in baseline_runs.get(run.meta["subsystem"]["id"], [])
-            if r is not run
+    def retention(run: Run) -> tuple[float, float]:
+        """Returns the retention score and the mean size of the baseline sets.
+
+        Every score uses baseline sets built from all but one baseline run.
+        A baseline run is scored against the set that leaves it out. Any
+        other run gets the mean over all such sets. The sets then have the
+        same size rule for every run, and no run is scored against itself.
+        """
+        pool = baseline_runs.get(run.meta["subsystem"]["id"], [])
+        if run in pool:
+            subsets = [[r for r in pool if r is not run]]
+        elif len(pool) > 1:
+            subsets = [[r for r in pool if r is not left_out] for left_out in pool]
+        else:
+            subsets = [pool]
+        sets = [
+            surface.baseline_identifiers([set(r.document.identifiers) for r in subset])
+            for subset in subsets
+            if subset
         ]
-        return surface.baseline_identifiers(others) if others else set()
+        if not sets:
+            return float("nan"), float("nan")
+        scores = [surface.identifier_retention(run.document.raw, s) for s in sets]
+        return float(np.mean(scores)), float(np.mean([len(s) for s in sets]))
 
     rows = []
     for r in runs:
@@ -126,10 +141,8 @@ def build_run_table(runs: list[Run], terms: list[surface.JargonTerm]) -> pd.Data
                 "level": meta["level"],
                 "repeat": meta["repeat"],
                 **metrics,
-                "identifier_retention": surface.identifier_retention(
-                    r.document.raw, baseline_for(r)
-                ),
-                "baseline_identifiers": len(baseline_for(r)),
+                "identifier_retention": retention(r)[0],
+                "baseline_identifiers": retention(r)[1],
                 "files_read": len(meta["files_read"]),
                 "turns": meta["turns"],
                 "cost_usd": meta["cost_usd"],
@@ -250,8 +263,9 @@ def analyze(config: Config, embedder: Embedder | None) -> None:
         summary.jargon_table(_term_counts(table), levels),
         "## Identifier retention by cell",
         "The fraction of the identifiers that at least half of a subsystem's "
-        f"{levels[0]}% runs mention. A {levels[0]}% run is scored against "
-        f"the other {levels[0]}% runs.",
+        f"{levels[0]}% runs mention. Each baseline set leaves one {levels[0]}% "
+        f"run out. A {levels[0]}% run is scored against the set without it, "
+        "and every other run gets the mean over all the sets.",
         summary.detail_table(by_cell, "identifier_retention", names, levels, "{:.2f}"),
     ]
 

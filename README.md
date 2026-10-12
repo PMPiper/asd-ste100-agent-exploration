@@ -123,6 +123,12 @@ How the text is prepared:
 - Document embeddings use the answer without fenced code blocks. Inline code
   stays in.
 
+Identifier retention compares a run with the inline code identifiers of the
+0% runs of its subsystem. Each baseline set is built from all 0% runs but
+one, and holds the identifiers that at least half of them mention. A 0% run
+is scored against the set that leaves it out. Every other run gets the mean
+over all the sets.
+
 The jargon list is `jargon.txt`, one term per line. A term matches inflected
 forms and ignores case. `[verb]`, `[noun]`, or `[adj]` after a term limits it
 to that part of speech.
