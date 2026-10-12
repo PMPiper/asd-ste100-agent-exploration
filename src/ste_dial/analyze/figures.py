@@ -257,7 +257,7 @@ def consistency(cells: pd.DataFrame, style: Style) -> Figure:
     figure, axes = _facets(
         style,
         "Consistency of repeats by STE level",
-        "Mean pairwise cosine similarity",
+        "Mean pairwise similarity",
     )
     for axis, key in zip(axes, style.subsystems):
         rows = cells[cells["subsystem"] == key].set_index("level")
