@@ -42,7 +42,6 @@ METRICS = [
     "cost_usd",
     "duration_s",
 ]
-EXCERPT_LEVELS = (0, 80, 100)
 EXCERPT_SENTENCES = 4
 BASELINE_LEVEL = 0
 _HEADING = re.compile(r"^#{1,6}\s+(.*)$", re.MULTILINE)
@@ -188,12 +187,17 @@ def _term_counts(table: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["term", "level", "count"])
 
 
-def _excerpts(runs: list[Run], names: dict[str, str], chosen: pd.Series | None) -> str:
+def _excerpts(
+    runs: list[Run],
+    names: dict[str, str],
+    levels: list[int],
+    chosen: pd.Series | None,
+) -> str:
     by_id = {r.meta["run_id"]: r for r in runs}
     parts = []
     for key, name in names.items():
         parts.append(f"#### {name}")
-        for level in EXCERPT_LEVELS:
+        for level in levels:
             cell = [
                 r
                 for r in runs
@@ -503,7 +507,7 @@ def analyze(config: Config, embedder: Embedder | None) -> None:
         "problem that the subsystem solves, or of the whole answer if no "
         "heading names that section. "
         f"Each excerpt is from {how}.",
-        _excerpts(runs, names, chosen),
+        _excerpts(runs, names, levels, chosen),
         "## Reproducibility",
         "\n".join(reproducibility),
     ]
