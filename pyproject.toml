@@ -3,6 +3,8 @@ name = "ste-dial"
 version = "0.1.0"
 description = "Measures how asking a coding agent for X% ASD-STE100 Simplified Technical English changes its explanations of an unfamiliar codebase."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "en-core-web-sm",

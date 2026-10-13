@@ -261,3 +261,7 @@ In a test with these flags, `mkdir` and `python3` were denied, and a run with
 Known limit: `find` can delete files or run a command through `-exec`. The
 status check after the run catches a changed checkout, but not a change
 outside it.
+
+## License
+
+MIT. See `LICENSE`.
