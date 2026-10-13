@@ -1,0 +1,6 @@
+grouping,scope,n,silhouette
+subsystem,all runs,45,0.9025696516036987
+level,all runs,45,-0.10822269320487976
+level,within runinference,15,0.003939686343073845
+level,within coders,15,-0.07004149258136749
+level,within fn_api_runner,15,-0.09964918345212936
